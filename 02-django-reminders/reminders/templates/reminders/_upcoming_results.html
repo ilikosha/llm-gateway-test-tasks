@@ -1,0 +1,10 @@
+{% if rows %}
+<table>
+  <thead><tr><th>Срок</th><th>Задача</th><th>Компания</th><th>Ответственный</th><th></th></tr></thead>
+  <tbody>
+    {% for row in rows %}{% include "reminders/_task_row.html" %}{% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">Нет задач со сроком в ближайшие {{ days }} дн.</div>
+{% endif %}

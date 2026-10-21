@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --c-bg: 245 246 248;
+    --c-surface: 255 255 255;
+    --c-text: 27 31 39;
+    --c-muted: 102 112 133;
+    --c-border: 226 229 234;
+    --c-accent: 59 91 219;
+    --c-ok: 27 127 75;
+    --c-ok-bg: 227 246 236;
+    --c-err: 180 35 24;
+    --c-err-bg: 253 236 235;
+    color-scheme: light;
+  }
+  :root.dark {
+    --c-bg: 15 17 22;
+    --c-surface: 24 27 34;
+    --c-text: 232 234 239;
+    --c-muted: 152 162 179;
+    --c-border: 45 50 61;
+    --c-accent: 116 143 252;
+    --c-ok: 82 201 135;
+    --c-ok-bg: 20 56 38;
+    --c-err: 249 112 102;
+    --c-err-bg: 70 26 22;
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-bg font-sans text-fg antialiased;
+    margin: 0;
+  }
+  select,
+  input {
+    @apply w-full rounded-md border border-line bg-surface px-2 py-2 text-fg;
+  }
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-[10px] border border-line bg-surface p-4;
+  }
+  .btn {
+    @apply cursor-pointer rounded-md border-0 bg-accent px-3.5 py-2 text-white disabled:cursor-default disabled:opacity-45;
+  }
+  .btn-secondary {
+    @apply border border-line bg-surface text-fg;
+  }
+}

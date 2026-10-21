@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ближайшие сроки</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <style>
+    :root { --fg:#1f2933; --muted:#6b7785; --line:#e3e7ec; --bg:#f6f8fa; --accent:#2563eb; --bad:#b42318; --bad-bg:#fef3f2; --ok:#067647; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--fg); background:var(--bg); }
+    main { max-width:860px; margin:0 auto; padding:24px 16px; }
+    h1 { font-size:22px; margin:0 0 16px; }
+    form.filters { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:16px; }
+    select { padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; font:inherit; }
+    .periods { display:inline-flex; gap:4px; }
+    .periods label { cursor:pointer; }
+    .periods input { position:absolute; opacity:0; }
+    .periods span { display:inline-block; padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+    .periods input:checked + span { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .periods input:focus-visible + span { outline:2px solid var(--accent); outline-offset:2px; }
+    table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+    th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle; }
+    th { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); background:#fafbfc; }
+    tr:last-child td { border-bottom:0; }
+    tr.overdue { background:var(--bad-bg); }
+    tr.overdue .due { color:var(--bad); font-weight:600; }
+    tr.done .due, tr.done .name { color:var(--ok); }
+    .muted { color:var(--muted); font-size:13px; }
+    button { padding:6px 12px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:6px; font:inherit; cursor:pointer; }
+    button:hover { filter:brightness(1.1); }
+    .htmx-request button { opacity:.6; }
+    .empty { padding:24px; text-align:center; color:var(--muted); background:#fff; border:1px solid var(--line); border-radius:8px; }
+  </style>
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<main>
+  <h1>Ближайшие сроки</h1>
+  <form class="filters" hx-get="{% url 'upcoming' %}" hx-target="#results" hx-push-url="true"
+        hx-trigger="change">
+    <div class="periods" role="radiogroup" aria-label="Период">
+      {% for d in days_choices %}
+        <label><input type="radio" name="days" value="{{ d }}" {% if d == days %}checked{% endif %}><span>{{ d }} дн.</span></label>
+      {% endfor %}
+    </div>
+    <label>Компания:
+      <select name="company">
+        <option value="">Все</option>
+        {% for c in companies %}
+          <option value="{{ c.pk }}" {% if c.pk == company_id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </form>
+  <div id="results">{% include "reminders/_upcoming_results.html" %}</div>
+</main>
+</body>
+</html>

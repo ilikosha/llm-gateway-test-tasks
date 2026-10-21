@@ -1,0 +1,28 @@
+[project]
+name = "django-reminders"
+version = "0.1.0"
+description = "Напоминания о периодических задачах компаний (Django + Celery)"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1,<6",
+    "celery[redis]>=5.4,<6",
+    "psycopg[binary]>=3.2",
+    "dj-database-url>=2.2",
+    "gunicorn>=23",
+    "whitenoise>=6.7",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+filterwarnings = ["ignore:No directory at:UserWarning"]

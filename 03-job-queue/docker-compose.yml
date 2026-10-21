@@ -1,0 +1,68 @@
+x-app: &app
+  build: .
+  environment: &env
+    DATABASE_URL: postgresql+asyncpg://jobs:jobs@db:5432/jobs
+
+# Токены воркеров: WORKER_1_TOKEN / WORKER_2_TOKEN (по умолчанию dev-значения; в проде задавать).
+
+x-worker: &worker
+  <<: *app
+  command: ["python", "-m", "jobqueue.worker"]
+  depends_on:
+    api:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jobs
+      POSTGRES_PASSWORD: jobs
+      POSTGRES_DB: jobs
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobs -d jobs"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  migrate:   # one-shot: применяет Alembic-миграции и завершается
+    <<: *app
+    command: ["python", "-m", "jobqueue.migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    <<: *app
+    environment:
+      <<: *env
+      WORKER_TOKENS: "worker-1:${WORKER_1_TOKEN:-dev-token-worker-1},worker-2:${WORKER_2_TOKEN:-dev-token-worker-2}"
+      STUCK_TIMEOUT_SECONDS: "600"   # 10 минут
+      REAPER_INTERVAL_SECONDS: "30"
+      MAX_ATTEMPTS: "3"
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/docs')"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  worker1:
+    <<: *worker
+    environment:
+      API_URL: http://api:8000
+      WORKER_TOKEN: ${WORKER_1_TOKEN:-dev-token-worker-1}
+
+  worker2:
+    <<: *worker
+    environment:
+      API_URL: http://api:8000
+      WORKER_TOKEN: ${WORKER_2_TOKEN:-dev-token-worker-2}

@@ -1,0 +1,16 @@
+<tr id="task-{{ row.task.pk }}" class="{% if row.overdue %}overdue{% endif %}{% if row.just_done %} done{% endif %}">
+  <td class="due">
+    {% if row.never_done %}не выполнялась{% else %}{{ row.due|date:"d.m.Y" }}{% if row.overdue %} <span class="muted">· просрочено</span>{% endif %}{% endif %}
+  </td>
+  <td class="name">{{ row.task.name }}</td>
+  <td>{{ row.task.company.name }}</td>
+  <td class="muted">{{ row.task.responsible_email }}</td>
+  <td>
+    {% if row.just_done %}
+      <span class="muted">Выполнено, след. срок {{ row.due|date:"d.m.Y" }}</span>
+    {% else %}
+      <button type="button" hx-post="{% url 'upcoming_done' row.task.pk %}"
+              hx-target="#task-{{ row.task.pk }}" hx-swap="outerHTML">Выполнено</button>
+    {% endif %}
+  </td>
+</tr>
