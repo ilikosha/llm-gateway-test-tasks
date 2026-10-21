@@ -27,7 +27,9 @@ def clock() -> FakeClock:
 
 @pytest.fixture
 def client(clock: FakeClock):
-    settings = Settings(rate_limit_requests=LIMIT, rate_limit_window_seconds=WINDOW)
+    settings = Settings(
+        rate_limit_requests=LIMIT, rate_limit_window_seconds=WINDOW, api_keys="key-a,key-b"
+    )
     app = create_app(settings, redis=FakeAsyncRedis(), clock=clock)
     with TestClient(app) as c:
         yield c

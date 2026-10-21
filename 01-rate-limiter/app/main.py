@@ -1,3 +1,4 @@
+import hmac
 import time
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
@@ -32,6 +33,16 @@ def create_app(
         redis, settings.rate_limit_requests, settings.rate_limit_window_seconds, clock
     )
     allowed_keys = settings.api_keys_set
+    if not allowed_keys:
+        raise RuntimeError("API_KEYS must contain at least one key")
+
+    def _is_known(token: str) -> bool:
+        # Constant-time comparison against every key, no early exit.
+        presented = token.encode()
+        found = False
+        for key in allowed_keys:
+            found |= hmac.compare_digest(presented, key.encode())
+        return found
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -43,7 +54,7 @@ def create_app(
     async def authenticate(authorization: Annotated[str | None, Header()] = None) -> str:
         scheme, _, token = (authorization or "").partition(" ")
         token = token.strip()
-        if scheme.lower() != "bearer" or not token or (allowed_keys and token not in allowed_keys):
+        if scheme.lower() != "bearer" or not token or not _is_known(token):
             raise HTTPException(
                 status_code=401,
                 detail="Invalid or missing API key",
